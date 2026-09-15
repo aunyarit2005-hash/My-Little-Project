@@ -78,3 +78,10 @@ python -m unittest test_chat.py test_cloud.py test_app.py -v
 - https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/secrets-management
 - https://docs.ultralytics.com/tasks/segment/
 - https://developers.openai.com/api/docs/guides/structured-outputs
+
+
+### หน้าจอแบบ prototype (UI 2026.09.15)
+
+จัดเป็นสี่การ์ด: ภาพและขอบเขต, ลักษณะรอยโรค, แชต, เอกสารประกอบ โทนเทาเข้มและเขียวมิ้นต์ ภาพรักษาอัตราส่วนและแชตเลื่อนภายในกรอบ อัปโหลดและดาวน์โหลดอยู่ในแถบพับได้
+
+ใช้ผลจริงจากโมเดล: อัตราส่วนกว้างต่อสูงมาจาก BB ส่วนพื้นที่ ความยาวขอบ และ Circularity แสดงเฉพาะเมื่อมี mask จริง ไม่มีการเติมค่าจำลองจาก prototype ในภาพผู้ใช้

@@ -13,7 +13,7 @@ class AppTests(unittest.TestCase):
     def test_initial_page_without_secrets(self):
         app = AppTest.from_file(str(Path(__file__).with_name("app.py"))).run(timeout=30)
         self.assertEqual(len(app.exception), 0)
-        self.assertEqual(app.title[0].value, "BreastVision Lab")
+        self.assertEqual(app.title[0].value, "สำรวจรอยโรคในภาพ")
 
     def test_inference_chat_downloads_and_invalidation(self):
         raw = io.BytesIO()
