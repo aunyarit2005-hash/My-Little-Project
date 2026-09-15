@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.streamlit/secrets.toml
+**/.streamlit/secrets.toml
+.env
+.env.*
+!*.example
+uploads/
+runs/

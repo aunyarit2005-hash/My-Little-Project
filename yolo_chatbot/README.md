@@ -1,55 +1,80 @@
-# YOLO Ultrasound Chatbot — ต้นแบบการศึกษา
+# BreastVision Lab — Streamlit ultrasound research prototype
 
-รวม best.pt ของผู้ใช้ (YOLO11n detection: benign/malignant), หน้า Streamlit, แชตภาษาไทยและคำแนะนำขั้นตอนถัดไป
+เว็บอัปโหลดภาพอัลตราซาวด์ แสดงผล YOLO รายกรอบ และค้นบทสรุปวิชาการประกอบคำตอบภาษาไทย ใช้ได้โดยไม่ต้องมี API key
 
-## เริ่มใช้งานบน Windows / macOS / Linux
-ติดตั้ง Python 3.11 หรือ 3.12 แล้วแตก ZIP เปิด terminal ในโฟลเดอร์นี้:
+## ความสามารถ
+
+- โมเดล `best.pt`: YOLO11n detection, `benign` / `malignant` ประมวลผลบน CPU
+- เลือกกรอบ เปิด–ปิด Bounding box และถามคะแนน/ตำแหน่งของกรอบนั้นจากผลจริง
+- ค้นด้วย TF-IDF character n-grams จาก 5 บทสรุปใน `rag.py` ซึ่งมาจาก 3 แหล่งข้อมูล ไม่ได้ค้นเว็บสดหรืออ่านเอกสารทั้งฉบับ
+- LLM เป็นทางเลือกสำหรับเรียบเรียงหลักฐาน มี fallback เมื่อเชื่อมต่อไม่ได้หรือรูปแบบอ้างอิงไม่ผ่าน
+- ดาวน์โหลดภาพ PNG, ผล JSON และรายงาน Markdown พร้อม image/model hash และเวลาประมวลผล
+- เปลี่ยนภาพหรือ threshold จะล้างผลและแชตเดิม ต้องประมวลผลใหม่
+- รองรับผล `segment` หากผู้ดูแลเปลี่ยนเป็นโมเดล segmentation ที่ฝึกแล้วและมีคลาสเดียวกัน แต่โมเดลที่รวมมา **ไม่มี mask** จึงไม่แสดงค่ารูปร่างปลอม
+
+## รันในเครื่อง
+
+ใช้ Python 3.12 และรันจาก root ของ repository เพื่อให้ Streamlit อ่าน `.streamlit/config.toml`:
 
 ```bash
 python -m venv .venv
 ```
-Windows PowerShell: `.venv\Scripts\Activate.ps1`
-Windows CMD: `.venv\Scripts\activate.bat`
-macOS/Linux: `source .venv/bin/activate`
+
+Windows PowerShell: `.venv\Scripts\Activate.ps1` หรือ macOS/Linux: `source .venv/bin/activate`
 
 ```bash
-python -m pip install -r requirements.txt
-python -m streamlit run app.py --server.address 127.0.0.1
+python -m pip install -r yolo_chatbot/requirements.txt
+python -m streamlit run yolo_chatbot/app.py
 ```
-เปิด http://localhost:8501 อัปโหลดภาพ PNG/JPG ยืนยันชนิดภาพ แล้วกดประมวลผล
-การติดตั้ง PyTorch ที่ Ultralytics ใช้มีขนาดใหญ่ และต้องเชื่อมต่ออินเทอร์เน็ตตอนติดตั้ง
-หากไม่พบ Ultralytics เวอร์ชันที่กำหนด ให้ใช้ environment เดิมที่เทรนไฟล์นี้ (metadata: 8.4.142) ไม่แก้ไฟล์ checkpoint เพื่อข้ามความเข้ากันได้
 
-## การทำงาน
-ภาพ → YOLO → JSON และภาพพร้อมกรอบ → เลือกหัวข้อคำถาม → คำตอบที่กำหนดไว้
-ผลและแชตเก็บใน session; เปลี่ยนภาพหรือ threshold จะล้างผลเก่า ต้องประมวลผลใหม่
-จำนวนกรอบไม่ใช่จำนวนรอยโรคที่ยืนยันแล้ว ไม่มีระบบตรวจคุณภาพ/ตรวจชนิดภาพอัตโนมัติ
+Requirements ใช้ CPU wheels ของ PyTorch เพื่อลดการดาวน์โหลด CUDA เหมาะกับ Streamlit Cloud บน Linux x86-64 สำหรับ macOS ให้ติดตั้ง torch/torchvision ที่รองรับระบบนั้นแยกจากรายการ `+cpu`
+
+## Deploy บน Streamlit Community Cloud
+
+1. ลงชื่อเข้าใช้ https://share.streamlit.io/ และให้บัญชี Streamlit เข้าถึง repository
+2. เลือก **Create app → Deploy a public app from GitHub**
+3. Repository: `aunyarit2005-hash/My-Little-Project`
+4. Branch: `main` (หรือ branch ที่มีการแก้ไขครบแล้ว)
+5. Main file path: `yolo_chatbot/app.py`
+6. Advanced settings: เลือก Python **3.12**; เวอร์ชันแรกไม่ต้องใส่ Secrets
+7. กด Deploy แล้วตรวจ build logs และทดลองอัปโหลดภาพที่ลบข้อมูลระบุตัวบุคคลแล้ว
+
+ไฟล์ `packages.txt` อยู่ root สำหรับไลบรารีระบบของ OpenCV ส่วน Python dependencies อยู่ `yolo_chatbot/requirements.txt` และ `best.pt` ต้องอยู่ข้าง `app.py`
 
 ## LLM ทางเลือก
-ค่าเริ่มต้นเป็นแชตตามกฎ ใช้ได้โดยไม่มี API key ไม่ใช่ LLM อิสระ
-หากมี Ollama ทำงานในเครื่องที่ http://127.0.0.1:11434 และติดตั้งโมเดลภาษาไว้แล้ว:
-1. เปิด “ใช้ Ollama ช่วยเข้าใจคำถาม”
-2. กรอกชื่อโมเดลตามที่ติดตั้ง
-3. LLM รับเฉพาะคำถามเพื่อเลือก intent; Python สร้างคำตอบจากผลจริงและข้อความคงที่
-ไม่ส่งภาพหรือ JSON ไปยัง LLM และไม่ให้ LLM แต่งคำแนะนำทางการแพทย์
-หากเชื่อมต่อไม่สำเร็จ ระบบกลับไปใช้กฎ และแจ้งในคำตอบ
-ไม่มี RAG หรือการสนทนาอิสระหลายหัวข้อในรุ่นนี้ ประวัติแชตใช้แสดงผล ไม่ส่งเข้า LLM
 
-## ขอบเขต
-- สำหรับการศึกษาเท่านั้น ยังไม่ผ่านการทวนสอบทางคลินิก
-- ข้อความคำแนะนำยังไม่ได้รับการตรวจทานจากแพทย์
-- benign ไม่ยืนยันว่าปลอดโรค, malignant ไม่ยืนยันมะเร็ง, ไม่พบกรอบไม่ใช่ผลปกติ
-- confidence ไม่ใช่โอกาสเป็นโรค ไม่ใช้ตัดสินความเร่งด่วน/การรักษา
-- ไม่กำหนดยา ระยะโรค ระยะติดตาม หรือสั่งตรวจเพิ่มเติมเอง
-- ภาพและข้อความอาจมีข้อมูลสุขภาพ: ใช้ภาพที่นำข้อมูลระบุตัวบุคคลออกแล้ว รันในเครื่อง ไม่เปิดพอร์ตสาธารณะ
-- โหลดเฉพาะ checkpoint ที่เชื่อถือได้ ไฟล์ .pt อาจมีวัตถุ Python; แอปไม่เปิดให้ผู้ใช้อัปโหลดโมเดลอื่น
+คัดลอกตัวอย่างจาก `secrets.example.toml` ไป **App settings → Secrets** บน Streamlit Cloud หรือ `.streamlit/secrets.toml` ในเครื่อง ห้าม commit key จริง
 
-## แหล่งอ้างอิงสำหรับพัฒนาต่อ
-- https://docs.ultralytics.com/modes/predict/
-- https://docs.streamlit.io/develop/api-reference/chat/st.chat_input
-- https://docs.ollama.com/api/chat
-- https://www.cancer.org/cancer/types/breast-cancer/screening-tests-and-early-detection.html
+- ค่าเริ่มต้น `provider = "none"`: ตอบค่าจากภาพและค้นหลักฐานโดยไม่เรียกบริการ LLM
+- `provider = "openai"`: ตั้ง `model`, `api_key` และ HTTPS `base_url` สำหรับ Chat Completions ที่รองรับ JSON mode (`json_object`, `max_completion_tokens`, `store`)
+- `provider = "ollama"`: ตั้ง `model`, `base_url` และ token ถ้าบริการนั้นกำหนด ต้องมี Ollama server ที่เครื่อง deploy เข้าถึงได้จริง `127.0.0.1` บน Cloud ไม่ใช่คอมพิวเตอร์ผู้ใช้
+- ใช้ environment variables `LLM_PROVIDER`, `LLM_MODEL`, `LLM_BASE_URL`, `LLM_API_KEY` แทน Secrets ได้
+- การใช้บริการ LLM อาจมีค่าใช้จ่ายตามผู้ให้บริการ จึงปิดไว้เป็นค่าเริ่มต้น
 
-## การตรวจสอบ
-เรียก `python -m unittest test_chat.py` ทดสอบกฎด้วยข้อมูลสังเคราะห์
-สถานะการตรวจจริงในสภาพแวดล้อมผู้สร้างดู VALIDATION.md
+เมื่อผู้ใช้เปิด LLM ระบบส่งเฉพาะคำถามและบทสรุปที่ค้นได้ ไม่ส่งภาพ ผล YOLO หรือประวัติแชต ค่าจากภาพตอบด้วย Python แยกจากข้อความ LLM ประวัติแชตใช้แสดงผล ไม่ได้เป็นบริบทสนทนาอิสระ
+
+ตรวจรหัสอ้างอิงและรูปแบบคำตอบก่อนแสดง แต่ไม่ได้พิสูจน์ว่าข้อความ LLM ทุกประโยคมีหลักฐานรองรับ จึงยังต้องตรวจเทียบเอกสารต้นทาง
+
+## ขอบเขตและข้อมูล
+
+ผลนี้เป็นต้นแบบการศึกษา ไม่ใช่การวินิจฉัย คลาส benign/malignant และ confidence ไม่ยืนยันสถานะโรค ไม่มีกรอบไม่ได้แปลว่าไม่มีโรค ข้อความต้นแบบยังไม่ได้รับการตรวจทานจากแพทย์
+
+บน Cloud ภาพจะถูกส่งไปเซิร์ฟเวอร์ที่รันแอป โค้ดไม่บันทึกภาพหรือแชตลงดิสก์โดยเจตนา แต่ข้อมูลอยู่ในหน่วยความจำของ session และระบบ hosting จัดการวงจรชีวิตของข้อมูล ใช้เฉพาะภาพที่ลบข้อมูลระบุตัวบุคคลแล้ว ไม่มีระบบตรวจชนิดภาพหรือข้อมูลระบุตัวบุคคลอัตโนมัติ
+
+ไฟล์ .pt เป็น checkpoint ของผู้ดูแลที่กำหนดไว้ ไม่เปิดให้ผู้ใช้เว็บอัปโหลดโมเดลอื่น การเพิ่ม segmentation ต้องใช้โมเดลที่ฝึกแล้ว ค่ารูปร่างคำนวณจาก contour ที่ทำนายและรายงานเป็นพิกเซล ไม่แปลงเป็นมิลลิเมตรหรือ BI-RADS
+
+## ตรวจสอบ
+
+```bash
+cd yolo_chatbot
+python -m unittest test_chat.py test_cloud.py test_app.py -v
+```
+
+`test_app.py` ใช้ Streamlit AppTest และภาพสังเคราะห์ทดสอบ checkpoint จริง ไม่ใช่ชุดประเมินทางคลินิก ดูสถานะการตรวจล่าสุดใน `VALIDATION.md`
+
+## เอกสารการติดตั้ง
+
+- https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app
+- https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/secrets-management
+- https://docs.ultralytics.com/tasks/segment/
+- https://developers.openai.com/api/docs/guides/structured-outputs

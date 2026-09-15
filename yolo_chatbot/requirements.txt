@@ -1,5 +1,9 @@
-scikit-learn
-
+# CPU wheels keep the Streamlit deployment free of CUDA downloads.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.14.0+cpu
+torchvision==0.29.0+cpu
+scikit-learn==1.9.1
 ultralytics==8.4.150
 streamlit==1.63.0
-Pillow>=10,<13
+Pillow==12.3.0
+numpy==2.5.2
