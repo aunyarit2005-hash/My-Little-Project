@@ -1,0 +1,5 @@
+# Install a matching torch/torchvision CUDA pair separately for your GPU.
+segment-anything @ git+https://github.com/facebookresearch/segment-anything.git@dca509fe793f601edb92606367a655c15ac00fdf
+numpy>=1.26,<3
+Pillow>=10,<13
+opencv-python-headless>=4.8,<5

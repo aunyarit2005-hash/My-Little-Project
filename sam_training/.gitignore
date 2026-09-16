@@ -1,0 +1,9 @@
+__pycache__/
+*.pt
+*.pth
+*.download
+runs/
+prediction*/
+manifest*.json
+groups.csv
+dataset/
