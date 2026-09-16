@@ -12,6 +12,7 @@ from segment_anything.modeling import Sam, ImageEncoderViT, PromptEncoder, MaskD
 from core import encode, decode, loss_fn, metrics
 from data import prepare, read_pair, components, box_from_mask, load_manifest
 from train import run_epoch
+from audit import audit
 
 
 def tiny_sam():
@@ -46,6 +47,15 @@ class TrainingTests(unittest.TestCase):
                 mask[5:20, 8:25] = 255
             Image.fromarray(image).save(self.root / f'benign ({i}).png')
             Image.fromarray(mask).save(self.root / f'benign ({i})_mask.png')
+
+    def test_audit_counts_and_errors(self):
+        self.dataset()
+        result = audit(self.root)
+        self.assertEqual((result['images'], result['mask_files']), (12, 12))
+        self.assertEqual(result['errors'], [])
+        self.assertEqual(result['folders']['.']['valid_pairs'], 12)
+        (self.root / 'benign (0)_mask.png').unlink()
+        self.assertTrue(any(r['error'] == 'Missing mask' for r in audit(self.root)['errors']))
 
     def test_group_split_and_no_leakage(self):
         self.dataset()

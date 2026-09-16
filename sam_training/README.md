@@ -109,3 +109,14 @@ python -m unittest discover -s sam_training -p 'test*.py'
 ทดสอบ pairing หลาย mask, binary validation, grouped split/leakage, gradients ของ decoder, output alignment กับภาพอัตราส่วนไม่จัตุรัส, train/val loop และปฏิเสธ annotation ที่เปลี่ยนหลังสร้าง manifest
 
 อ้างอิง API และ checkpoint: [Meta SAM](https://github.com/facebookresearch/segment-anything) โค้ดชุดนี้เป็น training recipe ที่เพิ่มให้โปรเจกต์ ไม่ใช่สูตรฝึกทางคลินิกที่ Meta รับรอง
+
+
+## ตรวจ dataset ใน Drive ก่อนฝึก
+
+Notebook ตั้งชื่อโฟลเดอร์เริ่มต้นเป็น `Dataset_BUSI_with_GT` เปลี่ยน DATA หากโฟลเดอร์อยู่ในตำแหน่งอื่น หรือเพิ่ม shortcut เข้า My Drive แล้วระบุตำแหน่งนั้น ไม่ต้องเปิดข้อมูลเป็นสาธารณะ
+
+```bash
+python sam_training/audit.py --data /path/to/Dataset_BUSI_with_GT
+```
+
+ตรวจทุกคู่ภาพ–mask ว่าขนาดตรงกัน ค่าเป็น binary และรายงาน mask ว่าง/ไฟล์ขาด/ไฟล์ mask ไม่มีภาพต้นฉบับ ก่อน split และฝึก ไม่แก้ไฟล์ต้นฉบับและไม่ตัดสินความถูกต้องทางคลินิกของขอบเขต ต้องตรวจภาพประกอบเองด้วย
